@@ -11,17 +11,19 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-        - ./data:/var/lib/postgresql/data
+        - ./postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
-  app:
-    container_name: main-script
+  python:
+    container_name: python
     build: .
     depends_on: 
       - postgres
     env_file:
       - .env
+    stdin_open: true
+    tty: true
     
 volumes:
   postgres_data:

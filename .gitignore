@@ -1,5 +1,5 @@
 .venv/
-docker/data/
+postgres-data/
 __pycache__/
 data/
 .DS_Store
