@@ -1,16 +1,21 @@
 import pandas as pd
 import re
+from app.logger import logger
 
 
 def convert_file_to_dataframe(csv_data, name):
-    dataframe = pd.read_csv(csv_data, sep=None, engine="python")
+    logger.info(f"Converting data to DataFrame")
+    try:
+        dataframe = pd.read_csv(csv_data, sep=None, engine="python")
+    except (pd.errors.EmptyDataError, pd.errors.ParserError) as e:
+        logger.error(f"Error reading CSV data: {e}")
+        return None, None, None, None
 
     table_name = format_str(name)
-
     dataframe.columns = [format_str(col) for col in dataframe.columns]
-
     columns_types = get_col_types(dataframe)
 
+    logger.info(f"Data converted successfully")
     return dataframe, table_name, dataframe.columns, columns_types
 
 
@@ -22,7 +27,10 @@ def get_file_name(headers):
 
     if len(file_name) == 0:
         return None
-    return file_name[0][:-4]
+
+    name = file_name[0][:-4]
+    logger.info(f"Extracted table name: {name}")
+    return name
 
 
 def format_str(str):
@@ -54,9 +62,7 @@ def get_col_types(dataframe):
     for col_name, dtype in zip(dataframe.columns, dataframe.dtypes):
         if str(dtype) == "int64":
             max_val = dataframe[col_name].max()
-            if max_val > 9223372036854775807:
-                sql_dtype = "bigint"
-            elif max_val > 2147483647:
+            if max_val > 2147483647:
                 sql_dtype = "bigint"
             else:
                 sql_dtype = "int"
